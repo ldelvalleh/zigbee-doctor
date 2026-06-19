@@ -1,0 +1,21 @@
+{
+  "title": "Zigbee Doctor",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Zigbee Doctor",
+        "description": "Connect Zigbee Doctor to your Zigbee2MQTT MQTT topics.",
+        "data": {
+          "base_topic": "Zigbee2MQTT base topic",
+          "enable_panel": "Enable sidebar panel",
+          "low_battery_threshold": "Low battery threshold (%)",
+          "passive_timeout_hours": "Passive device timeout (hours)",
+          "active_timeout_minutes": "Active device timeout (minutes)"
+        }
+      }
+    },
+    "error": {
+      "invalid_base_topic": "The base topic is not valid."
+    }
+  }
+}
