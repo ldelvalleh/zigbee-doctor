@@ -1,0 +1,51 @@
+{
+  "title": "Zigbee Doctor",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar Zigbee Doctor",
+        "description": "Conecta Zigbee Doctor con los topics MQTT de Zigbee2MQTT.",
+        "data": {
+          "base_topic": "Topic base de Zigbee2MQTT",
+          "enable_panel": "Activar panel lateral",
+          "low_battery_threshold": "Umbral de batería baja (%)",
+          "passive_timeout_hours": "Tiempo máximo sin respuesta en dispositivos pasivos (horas)",
+          "active_timeout_minutes": "Tiempo máximo sin respuesta en dispositivos activos (minutos)"
+        }
+      }
+    },
+    "error": {
+      "invalid_base_topic": "El topic base no es válido."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de Zigbee Doctor",
+        "description": "Ajusta el diagnóstico y el panel de Zigbee Doctor.",
+        "data": {
+          "base_topic": "Topic base de Zigbee2MQTT",
+          "enable_panel": "Activar panel lateral",
+          "low_battery_threshold": "Umbral de batería baja (%)",
+          "passive_timeout_hours": "Tiempo máximo sin respuesta en dispositivos pasivos (horas)",
+          "active_timeout_minutes": "Tiempo máximo sin respuesta en dispositivos activos (minutos)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "network_status": {"name": "Estado de la red"},
+      "health_score": {"name": "Puntuación de salud"},
+      "device_count": {"name": "Número de dispositivos"},
+      "offline_devices": {"name": "Dispositivos sin conexión"},
+      "problem_count": {"name": "Número de problemas"},
+      "low_battery_devices": {"name": "Dispositivos con batería baja"},
+      "stale_devices": {"name": "Dispositivos sin reportar"}
+    },
+    "binary_sensor": {
+      "problem_detected": {"name": "Problema detectado"},
+      "bridge_connected": {"name": "Bridge conectado"}
+    }
+  }
+}
