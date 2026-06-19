@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from homeassistant.components import frontend, persistent_notification
+from homeassistant.components import frontend, panel_custom, persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -126,21 +126,16 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
         _LOGGER.debug("Falling back to legacy static path registration: %s", err)
         hass.http.register_static_path(PANEL_STATIC_PATH, str(frontend_dir), False)
 
-    frontend.async_register_built_in_panel(
+    await panel_custom.async_register_panel(
         hass,
-        component_name="custom",
+        frontend_url_path=PANEL_URL_PATH,
+        webcomponent_name="zigbee-doctor-panel",
         sidebar_title=NAME,
         sidebar_icon="mdi:zigbee",
-        frontend_url_path=PANEL_URL_PATH,
+        js_url=f"{PANEL_STATIC_PATH}/{PANEL_FILE_NAME}",
+        embed_iframe=False,
         require_admin=False,
-        config={
-            "_panel_custom": {
-                "name": "zigbee-doctor-panel",
-                "embed_iframe": True,
-                "trust_external_script": False,
-                "js_url": f"{PANEL_STATIC_PATH}/{PANEL_FILE_NAME}",
-            }
-        },
+        config_panel_domain=DOMAIN,
     )
 
 
