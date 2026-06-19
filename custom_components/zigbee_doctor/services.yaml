@@ -1,0 +1,13 @@
+analyze_now:
+  name: Analyze now
+  description: Force Zigbee Doctor to rebuild the current diagnostic snapshot.
+
+generate_report:
+  name: Generate report
+  description: Create a plain text Zigbee Doctor report as a persistent notification.
+  fields:
+    language:
+      name: Language
+      description: Report language. Use en or es.
+      required: false
+      example: en
