@@ -97,163 +97,34 @@ class ZigbeeDoctorPanel extends HTMLElement {
 
     this.innerHTML = `
       <style>
-        :host {
-          display: block;
-          padding: 24px;
-          box-sizing: border-box;
-          --zd-card-bg: var(--card-background-color, #fff);
-          --zd-text: var(--primary-text-color, #111);
-          --zd-muted: var(--secondary-text-color, #667085);
-          --zd-border: var(--divider-color, rgba(0,0,0,.12));
-          --zd-radius: 22px;
-        }
-        .wrap {
-          max-width: 1120px;
-          margin: 0 auto;
-        }
-        .hero {
-          display: grid;
-          gap: 12px;
-          margin-bottom: 22px;
-        }
-        .title {
-          font-size: clamp(32px, 5vw, 56px);
-          font-weight: 800;
-          letter-spacing: -0.04em;
-          line-height: 0.95;
-          color: var(--zd-text);
-        }
-        .subtitle {
-          color: var(--zd-muted);
-          font-size: 17px;
-        }
-        .status-card {
-          border: 1px solid var(--zd-border);
-          border-radius: var(--zd-radius);
-          background: var(--zd-card-bg);
-          padding: 22px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          box-shadow: 0 10px 30px rgba(0,0,0,.05);
-          margin-bottom: 18px;
-        }
-        .status-left {
-          display: grid;
-          gap: 6px;
-        }
-        .status-label {
-          color: var(--zd-muted);
-          font-size: 14px;
-          text-transform: uppercase;
-          letter-spacing: .08em;
-          font-weight: 700;
-        }
-        .status-value {
-          font-size: 24px;
-          font-weight: 800;
-          color: var(--zd-text);
-        }
-        .pill {
-          border-radius: 999px;
-          padding: 8px 13px;
-          font-weight: 800;
-          font-size: 13px;
-          color: white;
-          background: #7a7a7a;
-        }
-        .pill.ok { background: #12a150; }
-        .pill.warning { background: #df8d00; }
-        .pill.critical { background: #d92d20; }
-        .pill.unknown { background: #667085; }
-        .meta {
-          color: var(--zd-muted);
-          font-size: 13px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 14px;
-          margin-bottom: 18px;
-        }
-        .metric {
-          border: 1px solid var(--zd-border);
-          border-radius: var(--zd-radius);
-          background: var(--zd-card-bg);
-          padding: 18px;
-          min-height: 104px;
-          display: grid;
-          gap: 8px;
-        }
-        .metric .label {
-          color: var(--zd-muted);
-          font-size: 13px;
-          font-weight: 700;
-        }
-        .metric .value {
-          color: var(--zd-text);
-          font-size: 34px;
-          font-weight: 850;
-          line-height: 1;
-        }
-        .actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-bottom: 18px;
-        }
-        button {
-          border: 0;
-          border-radius: 999px;
-          padding: 12px 17px;
-          font-weight: 800;
-          cursor: pointer;
-          background: var(--primary-color, #03a9f4);
-          color: var(--text-primary-color, white);
-        }
-        button.secondary {
-          background: color-mix(in srgb, var(--primary-color, #03a9f4) 12%, transparent);
-          color: var(--primary-color, #03a9f4);
-        }
-        .findings {
-          border: 1px solid var(--zd-border);
-          border-radius: var(--zd-radius);
-          background: var(--zd-card-bg);
-          padding: 20px;
-        }
-        .findings h2 {
-          margin: 0 0 12px;
-          font-size: 20px;
-          color: var(--zd-text);
-        }
-        .problem {
-          border-top: 1px solid var(--zd-border);
-          padding: 14px 0;
-        }
+        :host { display: block; padding: 24px; box-sizing: border-box; --zd-card-bg: var(--card-background-color, #fff); --zd-text: var(--primary-text-color, #111); --zd-muted: var(--secondary-text-color, #667085); --zd-border: var(--divider-color, rgba(0,0,0,.12)); --zd-radius: 22px; }
+        .wrap { max-width: 1120px; margin: 0 auto; }
+        .hero { display: grid; gap: 12px; margin-bottom: 22px; }
+        .title { font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -0.04em; line-height: .95; color: var(--zd-text); }
+        .subtitle { color: var(--zd-muted); font-size: 17px; }
+        .status-card, .metric, .findings { border: 1px solid var(--zd-border); border-radius: var(--zd-radius); background: var(--zd-card-bg); box-shadow: 0 10px 30px rgba(0,0,0,.05); }
+        .status-card { padding: 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+        .status-left { display: grid; gap: 6px; }
+        .status-label { color: var(--zd-muted); font-size: 14px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+        .status-value { font-size: 24px; font-weight: 800; color: var(--zd-text); }
+        .pill { border-radius: 999px; padding: 8px 13px; font-weight: 800; font-size: 13px; color: white; background: #667085; }
+        .pill.ok { background: #12a150; } .pill.warning { background: #df8d00; } .pill.critical { background: #d92d20; }
+        .meta { color: var(--zd-muted); font-size: 13px; }
+        .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+        .metric { padding: 18px; min-height: 104px; display: grid; gap: 8px; }
+        .metric .label { color: var(--zd-muted); font-size: 13px; font-weight: 700; }
+        .metric .value { color: var(--zd-text); font-size: 34px; font-weight: 850; line-height: 1; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+        button { border: 0; border-radius: 999px; padding: 12px 17px; font-weight: 800; cursor: pointer; background: var(--primary-color, #03a9f4); color: var(--text-primary-color, white); }
+        button.secondary { background: transparent; border: 1px solid var(--zd-border); color: var(--primary-text-color, #111); }
+        .findings { padding: 20px; }
+        .findings h2 { margin: 0 0 12px; font-size: 20px; color: var(--zd-text); }
+        .problem { border-top: 1px solid var(--zd-border); padding: 14px 0; }
         .problem:first-of-type { border-top: 0; }
-        .problem-title {
-          font-weight: 850;
-          color: var(--zd-text);
-          margin-bottom: 5px;
-        }
-        .problem-message, .problem-action {
-          color: var(--zd-muted);
-          line-height: 1.45;
-          font-size: 14px;
-        }
-        .empty {
-          color: var(--zd-muted);
-          line-height: 1.5;
-        }
-        @media (max-width: 900px) {
-          :host { padding: 16px; }
-          .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-          .status-card { align-items: flex-start; flex-direction: column; }
-        }
-        @media (max-width: 560px) {
-          .grid { grid-template-columns: 1fr; }
-        }
+        .problem-title { font-weight: 850; color: var(--zd-text); margin-bottom: 5px; }
+        .problem-message, .problem-action, .empty { color: var(--zd-muted); line-height: 1.45; font-size: 14px; }
+        @media (max-width: 900px) { :host { padding: 16px; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .status-card { align-items: flex-start; flex-direction: column; } }
+        @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
       </style>
 
       <div class="wrap">
@@ -281,8 +152,8 @@ class ZigbeeDoctorPanel extends HTMLElement {
         </section>
 
         <section class="actions">
-          <button @click="analyze">${this._t("analyze")}</button>
-          <button class="secondary" @click="report">${this._t("report")}</button>
+          <button data-action="analyze">${this._t("analyze")}</button>
+          <button class="secondary" data-action="report">${this._t("report")}</button>
         </section>
 
         <section class="findings">
@@ -292,8 +163,8 @@ class ZigbeeDoctorPanel extends HTMLElement {
       </div>
     `;
 
-    this.querySelector('button[@click="analyze"]')?.addEventListener("click", () => this._callService("analyze_now"));
-    this.querySelector('button[@click="report"]')?.addEventListener("click", () => this._callService("generate_report"));
+    this.querySelector('[data-action="analyze"]')?.addEventListener("click", () => this._callService("analyze_now"));
+    this.querySelector('[data-action="report"]')?.addEventListener("click", () => this._callService("generate_report"));
   }
 
   _metric(label, value) {
