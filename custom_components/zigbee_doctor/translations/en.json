@@ -1,0 +1,51 @@
+{
+  "title": "Zigbee Doctor",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Zigbee Doctor",
+        "description": "Connect Zigbee Doctor to your Zigbee2MQTT MQTT topics.",
+        "data": {
+          "base_topic": "Zigbee2MQTT base topic",
+          "enable_panel": "Enable sidebar panel",
+          "low_battery_threshold": "Low battery threshold (%)",
+          "passive_timeout_hours": "Passive device timeout (hours)",
+          "active_timeout_minutes": "Active device timeout (minutes)"
+        }
+      }
+    },
+    "error": {
+      "invalid_base_topic": "The base topic is not valid."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zigbee Doctor options",
+        "description": "Adjust Zigbee Doctor diagnostics and panel settings.",
+        "data": {
+          "base_topic": "Zigbee2MQTT base topic",
+          "enable_panel": "Enable sidebar panel",
+          "low_battery_threshold": "Low battery threshold (%)",
+          "passive_timeout_hours": "Passive device timeout (hours)",
+          "active_timeout_minutes": "Active device timeout (minutes)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "network_status": {"name": "Network status"},
+      "health_score": {"name": "Health score"},
+      "device_count": {"name": "Device count"},
+      "offline_devices": {"name": "Offline devices"},
+      "problem_count": {"name": "Problem count"},
+      "low_battery_devices": {"name": "Low battery devices"},
+      "stale_devices": {"name": "Stale devices"}
+    },
+    "binary_sensor": {
+      "problem_detected": {"name": "Problem detected"},
+      "bridge_connected": {"name": "Bridge connected"}
+    }
+  }
+}
