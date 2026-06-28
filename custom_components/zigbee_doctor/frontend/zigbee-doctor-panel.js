@@ -1,6 +1,14 @@
 class ZigbeeDoctorPanel extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._entityMap = null;
+    this._entityMapPromise = null;
+  }
+
   set hass(hass) {
     this._hass = hass;
+    this._ensureEntityMap();
     this._render();
   }
 
@@ -61,8 +69,47 @@ class ZigbeeDoctorPanel extends HTMLElement {
     return (this._isSpanish() ? es : en)[key] || key;
   }
 
-  _state(entityId) {
-    return this._hass?.states?.[entityId];
+  // The integration entities are named with has_entity_name + translation_key,
+  // so their entity_id is slugified from the localized name (e.g. Spanish).
+  // Resolve the real entity_id from the entity registry using the stable
+  // unique_id suffix instead of hard-coding the English slug.
+  _ensureEntityMap() {
+    if (this._entityMapPromise || !this._hass?.callWS) return;
+    const keys = [
+      "network_status",
+      "health_score",
+      "device_count",
+      "offline_devices",
+      "problem_count",
+      "low_battery_devices",
+      "stale_devices"
+    ];
+    this._entityMapPromise = this._hass
+      .callWS({ type: "config/entity_registry/list" })
+      .then((entries) => {
+        const map = {};
+        for (const entry of entries || []) {
+          if (entry.platform !== "zigbee_doctor") continue;
+          const uid = entry.unique_id || "";
+          for (const key of keys) {
+            if (uid.endsWith("_" + key)) map[key] = entry.entity_id;
+          }
+        }
+        this._entityMap = map;
+        this._render();
+      })
+      .catch(() => {
+        this._entityMap = {};
+      });
+  }
+
+  _entityId(key) {
+    if (this._entityMap && this._entityMap[key]) return this._entityMap[key];
+    return `sensor.zigbee_doctor_${key}`;
+  }
+
+  _state(key) {
+    return this._hass?.states?.[this._entityId(key)];
   }
 
   _statusInfo(status) {
@@ -81,13 +128,13 @@ class ZigbeeDoctorPanel extends HTMLElement {
   _render() {
     if (!this._hass) return;
 
-    const statusEntity = this._state("sensor.zigbee_doctor_network_status");
-    const scoreEntity = this._state("sensor.zigbee_doctor_health_score");
-    const deviceEntity = this._state("sensor.zigbee_doctor_device_count");
-    const offlineEntity = this._state("sensor.zigbee_doctor_offline_devices");
-    const problemEntity = this._state("sensor.zigbee_doctor_problem_count");
-    const lowBatteryEntity = this._state("sensor.zigbee_doctor_low_battery_devices");
-    const staleEntity = this._state("sensor.zigbee_doctor_stale_devices");
+    const statusEntity = this._state("network_status");
+    const scoreEntity = this._state("health_score");
+    const deviceEntity = this._state("device_count");
+    const offlineEntity = this._state("offline_devices");
+    const problemEntity = this._state("problem_count");
+    const lowBatteryEntity = this._state("low_battery_devices");
+    const staleEntity = this._state("stale_devices");
 
     const status = statusEntity?.state || "unknown";
     const info = this._statusInfo(status);
@@ -95,7 +142,7 @@ class ZigbeeDoctorPanel extends HTMLElement {
     const updatedAt = statusEntity?.attributes?.updated_at || "-";
     const bridge = statusEntity?.attributes?.bridge_state || "unknown";
 
-    this.innerHTML = `
+    this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; padding: 24px; box-sizing: border-box; --zd-card-bg: var(--card-background-color, #fff); --zd-text: var(--primary-text-color, #111); --zd-muted: var(--secondary-text-color, #667085); --zd-border: var(--divider-color, rgba(0,0,0,.12)); --zd-radius: 22px; }
         .wrap { max-width: 1120px; margin: 0 auto; }
@@ -163,8 +210,8 @@ class ZigbeeDoctorPanel extends HTMLElement {
       </div>
     `;
 
-    this.querySelector('[data-action="analyze"]')?.addEventListener("click", () => this._callService("analyze_now"));
-    this.querySelector('[data-action="report"]')?.addEventListener("click", () => this._callService("generate_report"));
+    this.shadowRoot.querySelector('[data-action="analyze"]')?.addEventListener("click", () => this._callService("analyze_now"));
+    this.shadowRoot.querySelector('[data-action="report"]')?.addEventListener("click", () => this._callService("generate_report"));
   }
 
   _metric(label, value) {
