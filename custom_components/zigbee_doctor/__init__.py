@@ -131,7 +131,7 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
         frontend_url_path=PANEL_URL_PATH,
         webcomponent_name="zigbee-doctor-panel",
         sidebar_title=NAME,
-        sidebar_icon="mdi:zigbee",
+        sidebar_icon="mdi:stethoscope",
         js_url=f"{PANEL_STATIC_PATH}/{PANEL_FILE_NAME}",
         embed_iframe=False,
         require_admin=False,
