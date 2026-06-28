@@ -90,9 +90,8 @@ class ZigbeeDoctorPanel extends HTMLElement {
         const map = {};
         for (const entry of entries || []) {
           if (entry.platform !== "zigbee_doctor") continue;
-          const uid = entry.unique_id || "";
-          for (const key of keys) {
-            if (uid.endsWith("_" + key)) map[key] = entry.entity_id;
+          if (entry.translation_key && keys.includes(entry.translation_key)) {
+            map[entry.translation_key] = entry.entity_id;
           }
         }
         this._entityMap = map;

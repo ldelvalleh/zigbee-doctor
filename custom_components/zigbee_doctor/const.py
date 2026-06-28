@@ -24,6 +24,8 @@ DEFAULT_ACTIVE_TIMEOUT_MINUTES = 10
 PANEL_URL_PATH = "zigbee-doctor"
 PANEL_STATIC_PATH = "/zigbee_doctor_static"
 PANEL_FILE_NAME = "zigbee-doctor-panel.js"
+# Bump on every frontend change to bust the browser cache for the panel JS.
+PANEL_VERSION = "2"
 
 SERVICE_ANALYZE_NOW = "analyze_now"
 SERVICE_GENERATE_REPORT = "generate_report"
