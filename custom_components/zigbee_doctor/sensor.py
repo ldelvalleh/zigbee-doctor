@@ -49,6 +49,11 @@ def _status_attr(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _devices_attr(data: dict[str, Any]) -> dict[str, Any]:
+    """Full per-device list for the panel's Devices tab."""
+    return {"devices": (data or {}).get("devices", [])}
+
+
 def _device_list_attr(key: str) -> AttrFn:
     def _attr(data: dict[str, Any]) -> dict[str, Any]:
         return {key: data.get(key, []) if data else []}
@@ -76,6 +81,7 @@ SENSORS: tuple[ZigbeeDoctorSensorEntityDescription, ...] = (
         translation_key="device_count",
         icon="mdi:devices",
         value_fn=lambda data: _summary(data).get("device_count", 0),
+        attr_fn=_devices_attr,
     ),
     ZigbeeDoctorSensorEntityDescription(
         key="offline_devices",

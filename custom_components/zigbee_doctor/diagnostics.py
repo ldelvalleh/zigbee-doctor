@@ -185,6 +185,7 @@ def analyze(
         "verdict": {**verdict, "status": status},
         "actions": actions,
         "problems": problems,
+        "devices": _export_devices(devices, low_battery_threshold, set(stale_devices)),
         "offline_devices": offline_devices,
         "low_battery_devices": low_battery_devices,
         "stale_devices": stale_devices,
@@ -193,6 +194,40 @@ def analyze(
         "bridge_state": _bridge_state_str(snapshot.bridge_online),
         "updated_at": now.isoformat(),
     }
+
+
+def _export_devices(
+    devices: list[DeviceModel], low_battery_threshold: int, stale: set[str]
+) -> list[dict[str, Any]]:
+    """Flatten the normalized devices for the panel's Devices tab."""
+    out: list[dict[str, Any]] = []
+    for device in devices:
+        if device.available is False:
+            dev_status = "offline"
+        elif device.battery is not None and device.battery <= low_battery_threshold:
+            dev_status = "low_battery"
+        elif device.name in stale:
+            dev_status = "stale"
+        elif device.available is True:
+            dev_status = "ok"
+        else:
+            dev_status = "unknown"
+
+        out.append(
+            {
+                "name": device.name,
+                "role": device.role.value,
+                "available": device.available,
+                "battery": _fmt_num(device.battery) if device.battery is not None else None,
+                "battery_powered": device.battery_powered,
+                "lqi": device.lqi,
+                "last_seen": device.last_seen.isoformat() if device.last_seen else None,
+                "status": dev_status,
+            }
+        )
+
+    out.sort(key=lambda item: item["name"].lower())
+    return out
 
 
 def _group_actions(
