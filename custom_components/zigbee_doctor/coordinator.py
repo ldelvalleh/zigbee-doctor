@@ -22,7 +22,8 @@ from .const import (
     DEFAULT_PASSIVE_TIMEOUT_HOURS,
     DOMAIN,
 )
-from .diagnostics import build_diagnostics
+from .collectors import build_z2m_snapshot
+from .diagnostics import analyze
 from .mqtt_client import ZigbeeDoctorMqttClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -108,23 +109,32 @@ class ZigbeeDoctorCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @callback
     def _publish_snapshot(self) -> None:
         """Rebuild diagnostics and notify listeners."""
-        snapshot = build_diagnostics(
+        warning_logs = [
+            log
+            for log in list(self.recent_logs)[-20:]
+            if str(log.get("level", "")).lower() in {"warning", "warn", "error"}
+        ]
+        snapshot = build_z2m_snapshot(
             bridge_state=self.bridge_state,
             bridge_health=self.bridge_health,
             devices=self.devices,
             availability=self.availability,
             device_states=self.device_states,
-            recent_logs=list(self.recent_logs),
+            recent_warning_logs=warning_logs,
+        )
+        result = analyze(
+            snapshot,
             low_battery_threshold=self.low_battery_threshold,
             passive_timeout_hours=self.passive_timeout_hours,
             active_timeout_minutes=self.active_timeout_minutes,
+            language=self.hass.config.language,
         )
-        snapshot["last_mqtt_message_at"] = (
+        result["last_mqtt_message_at"] = (
             self.last_mqtt_message_at.isoformat() if self.last_mqtt_message_at else None
         )
-        snapshot["recent_logs"] = list(self.recent_logs)
-        snapshot["recent_events"] = list(self.recent_events)
-        self.async_set_updated_data(snapshot)
+        result["recent_logs"] = list(self.recent_logs)
+        result["recent_events"] = list(self.recent_events)
+        self.async_set_updated_data(result)
 
     @staticmethod
     def _parse_bridge_state(payload: Any) -> str:
@@ -170,50 +180,54 @@ class ZigbeeDoctorCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = self.data or {}
         return {
             "summary": data.get("summary", {}),
+            "verdict": data.get("verdict", {}),
+            "actions": data.get("actions", []),
             "problems": data.get("problems", []),
             "offline_devices": data.get("offline_devices", []),
             "low_battery_devices": data.get("low_battery_devices", []),
             "stale_devices": data.get("stale_devices", []),
-            "recent_warning_logs": data.get("recent_warning_logs", []),
             "bridge_state": data.get("bridge_state", "unknown"),
             "updated_at": data.get("updated_at"),
         }
 
-    def build_plain_text_report(self, language: str = "en") -> str:
-        """Build a simple non-AI report for Phase 1 and Phase 2."""
-        payload = self.get_report_payload()
-        summary = payload.get("summary", {})
-        problems = payload.get("problems", [])
+    def build_plain_text_report(self, language: str | None = None) -> str:
+        """Build a simple, plain-language report in the install language."""
+        data = self.data or {}
+        summary = data.get("summary", {})
+        actions = [a for a in data.get("actions", []) if a.get("code") != "network_ok"]
+        spanish = str(self.hass.config.language or "en").lower().startswith("es")
 
-        if language.startswith("es"):
+        if spanish:
             lines = [
                 "Informe de Zigbee Doctor",
                 "",
-                f"Estado: {summary.get('status', 'unknown')}",
-                f"Puntuación orientativa: {summary.get('health_score', 0)}/100",
-                f"Dispositivos: {summary.get('device_count', 0)}",
-                f"Problemas detectados: {summary.get('problem_count', 0)}",
+                summary.get("headline", ""),
+                summary.get("subline", ""),
                 "",
-                "Problemas principales:",
+                f"Dispositivos funcionando: {summary.get('functioning_count', 0)}/{summary.get('device_count', 0)}",
+                f"Sin conexión: {summary.get('offline_count', 0)} · Pila baja: {summary.get('low_battery_count', 0)}",
+                "",
+                "Qué hacer ahora:",
             ]
-            for problem in problems[:5]:
-                lines.append(f"- {problem.get('title')}: {problem.get('message')}")
-                if problem.get("suggested_action"):
-                    lines.append(f"  Acción sugerida: {problem['suggested_action']}")
-            return "\n".join(lines)
+            empty = "Nada pendiente, tu red parece estable."
+        else:
+            lines = [
+                "Zigbee Doctor report",
+                "",
+                summary.get("headline", ""),
+                summary.get("subline", ""),
+                "",
+                f"Working devices: {summary.get('functioning_count', 0)}/{summary.get('device_count', 0)}",
+                f"Offline: {summary.get('offline_count', 0)} · Low battery: {summary.get('low_battery_count', 0)}",
+                "",
+                "What to do now:",
+            ]
+            empty = "Nothing pending, your network looks stable."
 
-        lines = [
-            "Zigbee Doctor report",
-            "",
-            f"Status: {summary.get('status', 'unknown')}",
-            f"Indicative score: {summary.get('health_score', 0)}/100",
-            f"Devices: {summary.get('device_count', 0)}",
-            f"Problems found: {summary.get('problem_count', 0)}",
-            "",
-            "Main findings:",
-        ]
-        for problem in problems[:5]:
-            lines.append(f"- {problem.get('title')}: {problem.get('message')}")
-            if problem.get("suggested_action"):
-                lines.append(f"  Suggested action: {problem['suggested_action']}")
+        if not actions:
+            lines.append(f"- {empty}")
+        for action in actions[:6]:
+            lines.append(f"- {action.get('title')}")
+            if action.get("detail"):
+                lines.append(f"  {action['detail']}")
         return "\n".join(lines)

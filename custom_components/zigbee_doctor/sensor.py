@@ -36,6 +36,19 @@ def _problems_attr(data: dict[str, Any]) -> dict[str, Any]:
     return {"problems": problems[:10]}
 
 
+def _status_attr(data: dict[str, Any]) -> dict[str, Any]:
+    """Everything the panel needs to render the at-a-glance summary."""
+    data = data or {}
+    summary = data.get("summary", {})
+    return {
+        "problems": (data.get("problems", []) or [])[:10],
+        "actions": data.get("actions", []),
+        "headline": summary.get("headline"),
+        "subline": summary.get("subline"),
+        "summary": summary,
+    }
+
+
 def _device_list_attr(key: str) -> AttrFn:
     def _attr(data: dict[str, Any]) -> dict[str, Any]:
         return {key: data.get(key, []) if data else []}
@@ -49,7 +62,7 @@ SENSORS: tuple[ZigbeeDoctorSensorEntityDescription, ...] = (
         translation_key="network_status",
         icon="mdi:zigbee",
         value_fn=lambda data: _summary(data).get("status", "unknown"),
-        attr_fn=_problems_attr,
+        attr_fn=_status_attr,
     ),
     ZigbeeDoctorSensorEntityDescription(
         key="health_score",
