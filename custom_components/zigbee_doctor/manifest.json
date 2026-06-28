@@ -1,10 +1,10 @@
 {
   "domain": "zigbee_doctor",
   "name": "Zigbee Doctor",
-  "after_dependencies": ["mqtt"],
+  "after_dependencies": ["mqtt", "zha"],
   "codeowners": ["@ldelvalleh"],
   "config_flow": true,
-  "dependencies": ["mqtt", "panel_custom"],
+  "dependencies": ["panel_custom"],
   "documentation": "https://github.com/ldelvalleh/zigbee-doctor",
   "integration_type": "hub",
   "iot_class": "local_push",

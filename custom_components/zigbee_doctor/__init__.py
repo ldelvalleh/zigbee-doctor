@@ -88,7 +88,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
     async def analyze_now(call: ServiceCall) -> None:
         """Force a diagnostic snapshot refresh."""
         coordinator = _get_first_coordinator(hass)
-        coordinator._publish_snapshot()  # noqa: SLF001 - intentional internal refresh
+        await coordinator.async_refresh_now()
 
     async def generate_report(call: ServiceCall) -> None:
         """Generate a Phase 1/2 plain-text report."""

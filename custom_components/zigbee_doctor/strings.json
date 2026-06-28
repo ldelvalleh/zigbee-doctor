@@ -6,7 +6,8 @@
         "title": "Set up Zigbee Doctor",
         "description": "Connect Zigbee Doctor to your Zigbee2MQTT MQTT topics.",
         "data": {
-          "base_topic": "Zigbee2MQTT base topic",
+          "source": "Data source (zigbee2mqtt or zha)",
+          "base_topic": "Zigbee2MQTT base topic (zigbee2mqtt only)",
           "enable_panel": "Enable sidebar panel",
           "low_battery_threshold": "Low battery threshold (%)",
           "passive_timeout_hours": "Passive device timeout (hours)",

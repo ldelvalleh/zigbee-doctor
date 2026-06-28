@@ -13,13 +13,17 @@ from .const import (
     CONF_ENABLE_PANEL,
     CONF_LOW_BATTERY_THRESHOLD,
     CONF_PASSIVE_TIMEOUT_HOURS,
+    CONF_SOURCE,
     DEFAULT_ACTIVE_TIMEOUT_MINUTES,
     DEFAULT_BASE_TOPIC,
     DEFAULT_ENABLE_PANEL,
     DEFAULT_LOW_BATTERY_THRESHOLD,
     DEFAULT_PASSIVE_TIMEOUT_HOURS,
+    DEFAULT_SOURCE,
     DOMAIN,
     NAME,
+    SOURCE_ZHA,
+    SOURCES,
 )
 
 
@@ -28,6 +32,10 @@ def _schema(user_input: dict | None = None) -> vol.Schema:
     user_input = user_input or {}
     return vol.Schema(
         {
+            vol.Required(
+                CONF_SOURCE,
+                default=user_input.get(CONF_SOURCE, DEFAULT_SOURCE),
+            ): vol.In(SOURCES),
             vol.Required(
                 CONF_BASE_TOPIC,
                 default=user_input.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC),
@@ -72,10 +80,11 @@ class ZigbeeDoctorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             base_topic = user_input[CONF_BASE_TOPIC].strip().strip("/")
-            if not base_topic:
+            user_input[CONF_BASE_TOPIC] = base_topic
+            # The base topic only matters for Zigbee2MQTT; ZHA ignores it.
+            if user_input.get(CONF_SOURCE) != SOURCE_ZHA and not base_topic:
                 errors[CONF_BASE_TOPIC] = "invalid_base_topic"
             else:
-                user_input[CONF_BASE_TOPIC] = base_topic
                 return self.async_create_entry(title=NAME, data=user_input)
 
         return self.async_show_form(

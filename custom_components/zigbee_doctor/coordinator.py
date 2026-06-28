@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
+from datetime import timedelta
 import logging
 from typing import Any
 
@@ -16,13 +17,17 @@ from .const import (
     CONF_BASE_TOPIC,
     CONF_LOW_BATTERY_THRESHOLD,
     CONF_PASSIVE_TIMEOUT_HOURS,
+    CONF_SOURCE,
     DEFAULT_ACTIVE_TIMEOUT_MINUTES,
     DEFAULT_BASE_TOPIC,
     DEFAULT_LOW_BATTERY_THRESHOLD,
     DEFAULT_PASSIVE_TIMEOUT_HOURS,
+    DEFAULT_SOURCE,
     DOMAIN,
+    SOURCE_ZHA,
+    ZHA_POLL_SECONDS,
 )
-from .collectors import build_z2m_snapshot
+from .collectors import build_z2m_snapshot, build_zha_snapshot
 from .diagnostics import analyze
 from .mqtt_client import ZigbeeDoctorMqttClient
 
@@ -34,14 +39,19 @@ class ZigbeeDoctorCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
+        options = {**entry.data, **entry.options}
+        self.source: str = options.get(CONF_SOURCE, DEFAULT_SOURCE)
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=None,
+            # ZHA has no push channel, so we poll its gateway on an interval.
+            update_interval=(
+                timedelta(seconds=ZHA_POLL_SECONDS) if self.source == SOURCE_ZHA else None
+            ),
         )
         self.entry = entry
-        self.options = {**entry.data, **entry.options}
+        self.options = options
         self.base_topic: str = self.options.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC)
         self.low_battery_threshold: int = self.options.get(
             CONF_LOW_BATTERY_THRESHOLD, DEFAULT_LOW_BATTERY_THRESHOLD
@@ -62,20 +72,55 @@ class ZigbeeDoctorCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.recent_events: deque[dict[str, Any]] = deque(maxlen=80)
         self.last_mqtt_message_at = None
 
-        self._mqtt = ZigbeeDoctorMqttClient(
-            hass=hass,
-            base_topic=self.base_topic,
-            message_callback=self.async_handle_mqtt_message,
-        )
+        self._mqtt: ZigbeeDoctorMqttClient | None = None
+        if self.source != SOURCE_ZHA:
+            self._mqtt = ZigbeeDoctorMqttClient(
+                hass=hass,
+                base_topic=self.base_topic,
+                message_callback=self.async_handle_mqtt_message,
+            )
 
     async def async_setup(self) -> None:
-        """Set up MQTT subscriptions."""
+        """Start collecting data for the configured source."""
+        if self.source == SOURCE_ZHA:
+            await self.async_config_entry_first_refresh()
+            return
         await self._mqtt.async_subscribe()
         self._publish_snapshot()
 
     async def async_shutdown(self) -> None:
-        """Shutdown MQTT subscriptions."""
-        await self._mqtt.async_unsubscribe()
+        """Stop collecting data."""
+        if self._mqtt is not None:
+            await self._mqtt.async_unsubscribe()
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Polling path (ZHA). Zigbee2MQTT is push-driven and never polls."""
+        if self.source == SOURCE_ZHA:
+            return self._build_zha_result()
+        return self.data or {}
+
+    @callback
+    def _build_zha_result(self) -> dict[str, Any]:
+        """Read the ZHA gateway and run the diagnostics."""
+        snapshot = build_zha_snapshot(self.hass)
+        result = analyze(
+            snapshot,
+            low_battery_threshold=self.low_battery_threshold,
+            passive_timeout_hours=self.passive_timeout_hours,
+            active_timeout_minutes=self.active_timeout_minutes,
+            language=self.hass.config.language,
+        )
+        result["last_mqtt_message_at"] = None
+        result["recent_logs"] = []
+        result["recent_events"] = []
+        return result
+
+    async def async_refresh_now(self) -> None:
+        """Force a fresh snapshot for the 'Analyze now' service."""
+        if self.source == SOURCE_ZHA:
+            await self.async_request_refresh()
+        else:
+            self._publish_snapshot()
 
     async def async_handle_mqtt_message(self, topic: str, payload: Any) -> None:
         """Process a Zigbee2MQTT MQTT message."""

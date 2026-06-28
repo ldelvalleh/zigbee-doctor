@@ -6,7 +6,8 @@
         "title": "Configurar Zigbee Doctor",
         "description": "Conecta Zigbee Doctor con los topics MQTT de Zigbee2MQTT.",
         "data": {
-          "base_topic": "Topic base de Zigbee2MQTT",
+          "source": "Fuente de datos (zigbee2mqtt o zha)",
+          "base_topic": "Topic base de Zigbee2MQTT (solo para zigbee2mqtt)",
           "enable_panel": "Activar panel lateral",
           "low_battery_threshold": "Umbral de batería baja (%)",
           "passive_timeout_hours": "Tiempo máximo sin respuesta en dispositivos pasivos (horas)",
@@ -24,7 +25,8 @@
         "title": "Opciones de Zigbee Doctor",
         "description": "Ajusta el diagnóstico y el panel de Zigbee Doctor.",
         "data": {
-          "base_topic": "Topic base de Zigbee2MQTT",
+          "source": "Fuente de datos (zigbee2mqtt o zha)",
+          "base_topic": "Topic base de Zigbee2MQTT (solo para zigbee2mqtt)",
           "enable_panel": "Activar panel lateral",
           "low_battery_threshold": "Umbral de batería baja (%)",
           "passive_timeout_hours": "Tiempo máximo sin respuesta en dispositivos pasivos (horas)",
